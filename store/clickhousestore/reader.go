@@ -12,6 +12,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.24.0"
 	"go.opentelemetry.io/otel/trace"
 	"log/slog"
+	"regexp"
 	"strings"
 	"time"
 )
@@ -171,7 +172,7 @@ func (r *ClickhouseReader) GetDependencies(ctx context.Context, endTs time.Time,
 }
 
 func (r *ClickhouseReader) getStrings(ctx context.Context, sql string, args ...interface{}) ([]string, error) {
-	ctx, span := r.tracer.Start(ctx, "db:getStrings")
+	ctx, span := r.tracer.Start(ctx, "reader:getStrings")
 	defer span.End()
 	span.SetAttributes(
 		semconv.DBSystemClickhouse,
@@ -213,7 +214,7 @@ func (r *ClickhouseReader) getStrings(ctx context.Context, sql string, args ...i
 }
 
 func (r *ClickhouseReader) getTraces(ctx context.Context, traceIDs []model.TraceID) ([]*model.Trace, error) {
-	ctx, span := r.tracer.Start(ctx, "db:getTraces")
+	ctx, span := r.tracer.Start(ctx, "reader:getTraces")
 	defer span.End()
 
 	var returning []*model.Trace
@@ -398,14 +399,30 @@ func (r *ClickhouseReader) findTraceIDsInRange(ctx context.Context, query *spans
 	}
 
 	for key, value := range query.Tags {
+		// Check for instances of wildcard without being escaped
+		wildcardMatch, _ := regexp.MatchString(`(^|[^\\])%`, value)
 		if strings.HasPrefix(value, "~") {
 			value = strings.TrimLeft(value, "~")
+			span.SetAttributes(attribute.String("query-type", "MATCH"))
+			span.SetAttributes(attribute.String("query-key", key))
+			span.SetAttributes(attribute.String("query-value", value))
 			stmt = stmt + fmt.Sprintf(" AND match(SpanAttributes[?], '%s')", value)
 			args = append(args, key)
-		} else if strings.Contains(value, "*") {
+		} else if wildcardMatch {
+			span.SetAttributes(attribute.String("query-type", "LIKE"))
+			span.SetAttributes(attribute.String("query-key", key))
+			span.SetAttributes(attribute.String("query-value", value))
 			stmt = stmt + " AND (SpanAttributes[?] LIKE ? AND SpanAttributes[?] != '')"
-			args = append(args, key, strings.ReplaceAll(value, "*", "%"), key)
+			args = append(args, key, value, key)
 		} else {
+			// Replace all escaped wildcards with literal '%'
+			// This is a janky workaround to support wildcard matches while also supporting
+			// literal '%' queries. If the query only contains literals by way of escaping,
+			// normalize them into the proper query syntax.
+			value = strings.ReplaceAll(value, "\\%", "%")
+			span.SetAttributes(attribute.String("query-type", "EQUAL"))
+			span.SetAttributes(attribute.String("query-key", key))
+			span.SetAttributes(attribute.String("query-value", value))
 			stmt = stmt + " AND SpanAttributes[?] = ?"
 			args = append(args, key, value)
 		}
