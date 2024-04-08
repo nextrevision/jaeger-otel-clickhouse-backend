@@ -54,6 +54,8 @@ In the "Tags" field, using a `%` character will result in a wildcard match using
 SELECT ... WHERE SpanAttributes['http.url'] LIKE 'http%://duckduckgo.com'
 ```
 
+If you wish to use a literal `%`, then escape it as `\\%`.
+
 ### Regex
 
 In the "Tags" field, using the operator `=~` character will result in a regex match using the Clickhouse [match](https://clickhouse.com/docs/en/sql-reference/functions/string-search-functions#match) function. The following is an example of a tag query and the resulting SQL:
@@ -62,4 +64,22 @@ In the "Tags" field, using the operator `=~` character will result in a regex ma
 # http.url=~http://[duck]+go.com
   
 SELECT ... WHERE match(SpanAttributes['http.url'], 'http://[duck]+go.com')
+```
+
+## Development
+
+Start the `clickhouse`, `otelcol` and `jaeger-query` services in the docker-compose example:
+
+```shell
+cd examples
+docker-compose up clickhouse otelcol jaeger-query
+```
+
+Start a development server with the following environment variables:
+
+```shell
+JOCB_DB_HOST=127.0.0.1
+JOCB_DB_PORT=19000
+JOCB_ENABLE_TRACING=true
+OTEL_EXPORTER_OTLP_ENDPOINT=http://127.0.0.1:4317
 ```

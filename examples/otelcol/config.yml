@@ -27,11 +27,11 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
-      processors: [batch]
+      processors: []
       exporters: [debug, clickhouse]
     logs:
       receivers: [otlp]
-      processors: [batch]
+      processors: []
       exporters: [debug]
     metrics:
       receivers: [otlp]
