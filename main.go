@@ -36,7 +36,7 @@ func newExporter(ctx context.Context, enabled bool) (sdktrace.SpanExporter, erro
 	return tracetest.NewNoopExporter(), nil
 }
 
-func newTraceProvider(exp sdktrace.SpanExporter) *sdktrace.TracerProvider {
+func newTraceProvider(exp sdktrace.SpanExporter) (*sdktrace.TracerProvider, error) {
 	r, err := resource.Merge(
 		resource.Default(),
 		resource.NewWithAttributes(
@@ -46,13 +46,13 @@ func newTraceProvider(exp sdktrace.SpanExporter) *sdktrace.TracerProvider {
 	)
 
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	return sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exp),
 		sdktrace.WithResource(r),
-	)
+	), nil
 }
 
 func initDB(cfg *store.Config) (*sql.DB, error) {
@@ -125,7 +125,7 @@ func main() {
 
 	// Read config from viper
 	v := viper.New()
-	v.SetEnvPrefix("JOC")
+	v.SetEnvPrefix("JOCB")
 	v.AutomaticEnv()
 	v.SetEnvKeyReplacer(strings.NewReplacer("-", "_", ".", "_"))
 
@@ -135,6 +135,7 @@ func main() {
 		err := v.ReadInConfig()
 		if err != nil {
 			logger.ErrorContext(ctx, "failed to parse configuration file", "error", err)
+			os.Exit(1)
 		}
 	}
 
@@ -149,10 +150,15 @@ func main() {
 	exp, err := newExporter(ctx, cfg.EnableTracing)
 	if err != nil {
 		logger.ErrorContext(ctx, "failed to initialize exporter", "error", err)
+		os.Exit(1)
 	}
 
 	// Create a new tracer provider with a batch span processor and the given exporter.
-	tp := newTraceProvider(exp)
+	tp, err := newTraceProvider(exp)
+	if err != nil {
+		logger.ErrorContext(ctx, "unable to create trace provider", "error", err)
+		os.Exit(1)
+	}
 
 	// Handle shutdown properly so nothing leaks.
 	defer func() { _ = tp.Shutdown(ctx) }()
@@ -163,7 +169,8 @@ func main() {
 	// Initialize clickhouse db connection
 	db, err := initDB(cfg)
 	if err != nil {
-		panic(err)
+		logger.ErrorContext(ctx, "unable to create clickhouse connection", "error", err)
+		os.Exit(1)
 	}
 	defer func() { _ = db.Close() }()
 
@@ -182,7 +189,8 @@ func main() {
 	server := grpc.NewServer()
 	err = handler.Register(server)
 	if err != nil {
-		panic(err)
+		logger.ErrorContext(ctx, "unable to register server with grpc handler", "error", err)
+		os.Exit(1)
 	}
 
 	logger.InfoContext(ctx, "server listening", "address", lis.Addr().String())

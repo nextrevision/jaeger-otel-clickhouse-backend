@@ -8,6 +8,7 @@ import (
 const (
 	defaultDatabase = "otel"
 	defaultTable    = "otel_traces"
+	defaultUser     = "default"
 )
 
 type Config struct {
@@ -60,8 +61,8 @@ func (c *Config) validate() error {
 		return fmt.Errorf("db_host and db_port must be set")
 	}
 
-	if c.DBUser == "" || c.DBPass == "" {
-		return fmt.Errorf("db_user and db_pass must be set")
+	if c.DBUser == "" {
+		c.DBUser = defaultUser
 	}
 
 	if c.DBName == "" {
