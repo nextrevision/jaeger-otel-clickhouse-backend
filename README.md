@@ -2,48 +2,43 @@
 
 This project is a Jaeger gRPC backend (v1) compatible with the [OpenTelemetry Clickhouse exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/clickhouseexporter). It provides a way of visualizing trace data via the Jaeger Query frontend.
 
+![Example trace from backend](assets/ui-example.png)
+
 ## Quickstart
 
-Requirements:
-- A running clickhouse instance
-- OpenTelemetry Collector exporting to Clickhouse via the clickhouseexporter plugin
+Clone this repository and open a shell in the `examples` folder, then run:
 
-Start the backend:
+```shell
+docker-compose up
+```
+Access the Jaeger UI at [http://localhost:16686](http://localhost:16686).
 
-```
-go run main.go -config my-config.yaml
-```
-
-Start Jaeger Query:
-
-```
-docker run -p 16686:16686 -e SPAN_STORAGE_TYPE=grpc-plugin jaegertracing/jaeger-query:1.56.0 --grpc-storage.server localhost:14482
-```
+On first load, there will be no traces, but that will cause the backend to create and send traces to the collector. On refresh, you should see the backend service in the UI.
 
 ## Config
 
-Can be set by YAML file and the `-config` flag or by environment variable with the `JOC` prefix.
+Can be set by YAML file and the `-config` flag or by environment variable with the `JOCB` prefix.
 
-| Env Var                            | YAML                           | Type   | Required | Default       | Example           |
-|------------------------------------|--------------------------------|--------|----------|---------------|-------------------|
-| `JOC_DB_HOST`                      | `db_host`                      | string | true     |               | `127.0.0.1`       |
-| `JOC_DB_PORT`                      | `db_port`                      | int    | true     |               | `9000`            |
-| `JOC_DB_USER`                      | `db_user`                      | string | true     |               | `test_user`       |
-| `JOC_DB_PASS`                      | `db_pass`                      | string | true     |               | `test_pass`       |
-| `JOC_DB_NAME`                      | `db_name`                      | string | true     | `otel`        | `custom_database` |
-| `JOC_DB_TABLE`                     | `db_table`                     | string | true     | `otel_traces` | `trace_data`      |
-| `JOC_DB_CA_FILE`                   | `db_ca_file`                   | string | false    |               | `/ca.crt`         |
-| `JOC_DB_TLS_ENABLED`               | `db_tls_enabled`               | bool   | false    | `false`       | `true`            |
-| `JOC_DB_TLS_INSECURE`              | `db_tls_insecure`              | bool   | false    | `false`       | `true`            |
-| `JOC_DB_MAX_OPEN_CONNS`            | `db_max_open_conns`            | int    | false    |               | `10`              |
-| `JOC_DB_MAX_IDLE_CONNS`            | `db_max_idle_conns`            | int    | false    |               | `5`               |
-| `JOC_DB_CONN_MAX_LIFETIME_MILLIS`  | `db_conn_max_lifetime_millis`  | int    | false    |               | `3000`            |
-| `JOC_DB_CONN_MAX_IDLE_TIME_MILLIS` | `db_conn_max_idle_time_millis` | int    | false    |               | `1000`            |
-| `JOC_ENABLE_TRACING`               | `enable_tracing`               | bool   | false    | `false`        | `true`            |
+| Env Var                             | YAML                           | Type   | Required | Default       | Example           |
+|-------------------------------------|--------------------------------|--------|----------|---------------|-------------------|
+| `JOCB_DB_HOST`                      | `db_host`                      | string | true     |               | `127.0.0.1`       |
+| `JOCB_DB_PORT`                      | `db_port`                      | int    | true     |               | `9000`            |
+| `JOCB_DB_USER`                      | `db_user`                      | string | true     | `default`     | `test_user`       |
+| `JOCB_DB_PASS`                      | `db_pass`                      | string | false    |               | `test_pass`       |
+| `JOCB_DB_NAME`                      | `db_name`                      | string | true     | `otel`        | `custom_database` |
+| `JOCB_DB_TABLE`                     | `db_table`                     | string | true     | `otel_traces` | `trace_data`      |
+| `JOCB_DB_CA_FILE`                   | `db_ca_file`                   | string | false    |               | `/ca.crt`         |
+| `JOCB_DB_TLS_ENABLED`               | `db_tls_enabled`               | bool   | false    | `false`       | `true`            |
+| `JOCB_DB_TLS_INSECURE`              | `db_tls_insecure`              | bool   | false    | `false`       | `true`            |
+| `JOCB_DB_MAX_OPEN_CONNS`            | `db_max_open_conns`            | int    | false    |               | `10`              |
+| `JOCB_DB_MAX_IDLE_CONNS`            | `db_max_idle_conns`            | int    | false    |               | `5`               |
+| `JOCB_DB_CONN_MAX_LIFETIME_MILLIS`  | `db_conn_max_lifetime_millis`  | int    | false    |               | `3000`            |
+| `JOCB_DB_CONN_MAX_IDLE_TIME_MILLIS` | `db_conn_max_idle_time_millis` | int    | false    |               | `1000`            |
+| `JOCB_ENABLE_TRACING`               | `enable_tracing`               | bool   | false    | `false`       | `true`            |
 
 ### Tracing
 
-The backend has been instrumented with OpenTelemetry and can be configured to export traces via gRPC to an OTLP compatible endpoint. This can be enabled using the `JOC_ENABLE_TRACING=true` environment variable and setting `OTEL_EXPORTER_OTLP_ENDPOINT` to the desired OTLP compatible address.
+The backend has been instrumented with OpenTelemetry and can be configured to export traces via gRPC to an OTLP compatible endpoint. This can be enabled using the `JOCB_ENABLE_TRACING=true` environment variable and setting `OTEL_EXPORTER_OTLP_ENDPOINT` to the desired OTLP compatible address.
 
 ## Tag Search Syntax
 

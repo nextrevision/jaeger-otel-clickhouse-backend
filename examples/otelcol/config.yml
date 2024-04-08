@@ -1,0 +1,39 @@
+receivers:
+  otlp:
+    protocols:
+      http:
+      grpc:
+processors:
+  batch:
+    send_batch_size: 10000
+    timeout: 10s
+exporters:
+  debug:
+  clickhouse:
+    endpoint: clickhouse://clickhouse:9000
+    database: otel
+    username: default
+    ttl: 12h
+    logs_table_name: otel_logs
+    traces_table_name: otel_traces
+    metrics_table_name: otel_metrics
+    timeout: 5s
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug, clickhouse]
+    logs:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
+    metrics:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [debug]
