@@ -1,6 +1,6 @@
 # Jaeger OpenTelemetry Clickhouse Backend 
 
-This project is a Jaeger gRPC backend (v1) compatible with the [OpenTelemetry Clickhouse exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/clickhouseexporter). It provides a way of visualizing trace data via the Jaeger Query frontend.
+Jaeger gRPC backend (v1) compatible with the [OpenTelemetry Clickhouse exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/clickhouseexporter). It provides a way of visualizing trace data stored in Clickhouse via the Jaeger Query frontend.
 
 ![Example trace from backend](assets/ui-example.png)
 
