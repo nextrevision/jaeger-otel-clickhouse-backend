@@ -1,0 +1,24 @@
+version: '3.8'
+name: jaeger-otel-clickhouse-backend-dev
+services:
+  clickhouse:
+    extends:
+      file: docker-compose.common.yml
+      service: clickhouse
+    ports:
+      - '127.0.0.1:18123:8123'
+      - '127.0.0.1:19000:9000'
+  otelcol:
+    extends:
+      file: docker-compose.common.yml
+      service: otelcol
+  jaeger-query:
+    extends:
+      file: docker-compose.common.yml
+      service: jaeger-query
+    command:
+      - --grpc-storage.server
+      - host.docker.internal:14482
+    depends_on:
+      - otelcol
+    restart: unless-stopped

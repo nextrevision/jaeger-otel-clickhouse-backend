@@ -72,7 +72,7 @@ Start the `clickhouse`, `otelcol` and `jaeger-query` services in the docker-comp
 
 ```shell
 cd examples
-docker-compose up clickhouse otelcol jaeger-query
+docker-compose up -f docker-compose.dev.yml
 ```
 
 Start a development server with the following environment variables:

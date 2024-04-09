@@ -10,6 +10,7 @@ import (
 	clickhouse "github.com/ClickHouse/clickhouse-go/v2"
 	"github.com/jaegertracing/jaeger/plugin/storage/grpc/shared"
 	store "github.com/nextrevision/jaeger-otel-clickhouse-backend/store"
+	"github.com/nextrevision/jaeger-otel-clickhouse-backend/store/clickhousestore"
 	slogotel "github.com/remychantenay/slog-otel"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/otel"
@@ -174,8 +175,10 @@ func main() {
 	}
 	defer func() { _ = db.Close() }()
 
+	clickhouseStore := clickhousestore.New(cfg.DBTable, db, tracer)
+
 	// Create new storeBackend
-	storeBackend := store.New(cfg, db, tracer)
+	storeBackend := store.New(clickhouseStore, tracer)
 
 	// Register store backend
 	handler := shared.NewGRPCHandlerWithPlugins(storeBackend, nil, storeBackend)

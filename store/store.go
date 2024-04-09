@@ -2,36 +2,34 @@ package store
 
 import (
 	"context"
-	"database/sql"
 	"github.com/jaegertracing/jaeger/model"
 	"github.com/jaegertracing/jaeger/storage/dependencystore"
 	"github.com/jaegertracing/jaeger/storage/spanstore"
 	"github.com/nextrevision/jaeger-otel-clickhouse-backend/store/clickhousestore"
 	"go.opentelemetry.io/otel/trace"
+	"log/slog"
 )
 
 type Store struct {
-	db     *sql.DB
-	table  string
-	reader *clickhousestore.ClickhouseReader
-	tracer trace.Tracer
+	clickhousestore clickhousestore.ClickhouseStore
+	tracer          trace.Tracer
+	logger          *slog.Logger
 }
 
-func New(cfg *Config, db *sql.DB, tracer trace.Tracer) *Store {
+func New(store clickhousestore.ClickhouseStore, tracer trace.Tracer) *Store {
 	return &Store{
-		db:     db,
-		table:  cfg.DBTable,
-		reader: clickhousestore.New(cfg.DBTable, db, tracer),
-		tracer: tracer,
+		clickhousestore: store,
+		tracer:          tracer,
+		logger:          slog.Default(),
 	}
 }
 
 func (s *Store) SpanReader() spanstore.Reader {
-	return s.reader
+	return s
 }
 
 func (s *Store) DependencyReader() dependencystore.Reader {
-	return s.reader
+	return s
 }
 
 func (s *Store) SpanWriter() spanstore.Writer {

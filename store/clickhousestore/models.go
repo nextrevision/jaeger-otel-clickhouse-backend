@@ -1,24 +1,40 @@
 package clickhousestore
 
-import "time"
+import (
+	"time"
+)
+
+type ClickhouseOtelTrace struct {
+	TraceID string
+	Spans   []ClickhouseOtelSpan
+}
 
 type ClickhouseOtelSpan struct {
-	Timestamp          time.Time           `db:"Timestamp"`
-	TraceId            string              `db:"TraceId"`
-	SpanId             string              `db:"SpanId"`
-	ParentSpanId       string              `db:"ParentSpanId"`
-	TraceState         string              `db:"TraceState"`
-	SpanName           string              `db:"SpanName"`
-	SpanKind           string              `db:"SpanKind"`
-	ServiceName        string              `db:"ServiceName"`
-	ResourceAttributes map[string]string   `db:"ResourceAttributes"`
-	ScopeName          string              `db:"ScopeName"`
-	ScopeVersion       string              `db:"ScopeVersion"`
-	SpanAttributes     map[string]string   `db:"SpanAttributes"`
-	Duration           int64               `db:"Duration"`
-	StatusCode         string              `db:"StatusCode"`
-	StatusMessage      string              `db:"StatusMessage"`
-	EventsTimestamp    []time.Time         `db:"Events.Timestamp"`
-	EventsName         []string            `db:"Events.Name"`
-	EventsAttributes   []map[string]string `db:"Events.Attributes"`
+	Timestamp          time.Time
+	TraceID            string
+	SpanID             string
+	ParentSpanID       string
+	TraceState         string
+	SpanName           string
+	SpanKind           string
+	ServiceName        string
+	ResourceAttributes map[string]string
+	ScopeName          string
+	ScopeVersion       string
+	SpanAttributes     map[string]string
+	Duration           int64
+	StatusCode         string
+	StatusMessage      string
+	EventsTimestamp    []time.Time
+	EventsName         []string
+	EventsAttributes   []map[string]string
+}
+
+type SearchOptions struct {
+	SpanName        string
+	Attributes      map[string]string
+	IgnoredTraceIDs []string
+	MinDuration     time.Duration
+	MaxDuration     time.Duration
+	SearchLimit     int
 }
