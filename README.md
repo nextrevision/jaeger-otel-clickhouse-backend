@@ -15,6 +15,14 @@ Access the Jaeger UI at [http://localhost:16686](http://localhost:16686).
 
 On first load, there will be no traces, but that will cause the backend to create and send traces to the collector. On refresh, you should see the backend service in the UI.
 
+## Docker
+
+Images are hosted on [Docker Hub](https://hub.docker.com/r/nextrevision/jaeger-otel-clickhouse-backend) and can be run with:
+
+```shell
+docker run --rm -it -e JOCB_DB_HOST=127.0.0.1 -e JOCB_DB_PORT=9000 -p 14482:14482 nextrevision/jaeger-otel-clickhouse-backend:latest
+```
+
 ## Config
 
 Can be set by YAML file and the `-config` flag or by environment variable with the `JOCB` prefix.
