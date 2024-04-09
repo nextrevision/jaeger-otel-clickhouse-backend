@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  push_to_registry:
+  publish:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
