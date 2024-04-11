@@ -4,7 +4,6 @@ go 1.22
 
 require (
 	github.com/ClickHouse/clickhouse-go/v2 v2.23.0
-	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/jaegertracing/jaeger v1.56.0
 	github.com/remychantenay/slog-otel v1.3.0
 	github.com/spf13/viper v1.18.2
@@ -13,7 +12,7 @@ require (
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.24.0
 	go.opentelemetry.io/otel/sdk v1.24.0
 	go.opentelemetry.io/otel/trace v1.24.0
-	google.golang.org/grpc v1.63.0
+	google.golang.org/grpc v1.63.2
 )
 
 require (
