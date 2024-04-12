@@ -1,4 +1,4 @@
-name: Publish Helm Charts
+name: publish-helm-charts
 
 on:
   push:
