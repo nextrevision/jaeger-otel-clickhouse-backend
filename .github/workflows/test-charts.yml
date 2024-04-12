@@ -18,7 +18,7 @@ jobs:
       - name: Set up Helm
         uses: azure/setup-helm@v3
         with:
-          version: v3.12.1
+          version: v3.14.0
 
       - uses: actions/setup-python@v4
         with:
@@ -46,7 +46,9 @@ jobs:
 
       - name: Install clickhouse helm chart
         if: steps.list-changed.outputs.changed == 'true'
-        run: helm upgrade --install --version 24.3.2 --set shards=1,replicaCount=1,persistence.enabled=false,zookeeper.enabled=false,auth.password="clickhouse" clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse
+        run: |
+          helm repo add bitnami https://charts.bitnami.com/bitnami
+          helm upgrade --install --version 6.0.2 --set shards=1,replicaCount=1,persistence.enabled=false,zookeeper.enabled=false,auth.password="clickhouse" clickhouse bitnami/clickhouse
 
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
