@@ -40,6 +40,47 @@ spec:
             - name: http
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          env:
+            - name: JOCB_DB_HOST
+              value: {{ required "backend.clickhouse.host is required" .Values.backend.clickhouse.host }}
+            - name: JOCB_DB_PORT
+              value: {{ required "backend.clickhouse.port is required" .Values.backend.clickhouse.port }}
+            - name: JOCB_DB_USER
+              value: {{ required "backend.clickhouse.user is required" .Values.backend.clickhouse.user }}
+            {{- if .Values.backend.clickhouse.pass }}
+            - name: JOCB_DB_PASS
+              value: {{ .Values.backend.clickhouse.pass }}
+            {{- end }}
+            {{- if .Values.backend.clickhouse.tls.enabled }}
+            - name: JOCB_DB_TLS_ENABLED
+              value: "true"
+            {{- end }}
+            {{- if .Values.backend.clickhouse.tls.insecure }}
+            - name: JOCB_DB_TLS_INSECURE
+              value: "true"
+            {{- end }}
+            {{- if .Values.backend.clickhouse.max_open_conns }}
+            - name: JOCB_DB_MAX_OPEN_CONNS
+              value: {{ .Values.backend.clickhouse.max_open_conns }}
+            {{- end }}
+            {{- if .Values.backend.clickhouse.max_idle_conns }}
+            - name: JOCB_DB_MAX_IDLE_CONNS
+              value: {{ .Values.backend.clickhouse.max_idle_conns }}
+            {{- end }}
+            {{- if .Values.backend.clickhouse.conn_max_lifetime_millis }}
+            - name: JOCB_DB_CONN_MAX_LIFETIME_MILLIS
+              value: {{ .Values.backend.clickhouse.conn_max_lifetime_millis }}
+            {{- end }}
+            {{- if .Values.backend.clickhouse.conn_max_idle_time_millis }}
+            - name: JOCB_DB_CONN_MAX_IDLE_TIME_MILLIS
+              value: {{ .Values.backend.clickhouse.conn_max_idle_time_millis }}
+            {{- end }}
+            {{- if .Values.backend.tracing.enabled }}
+            - name: JOCB_ENABLE_TRACING
+              value: "true"
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: {{ required "backend.tracing.otel_grpc_endpoint is required when tracing enabled" .Values.backend.tracing.otel_grpc_endpoint }}
+            {{- end }}
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:

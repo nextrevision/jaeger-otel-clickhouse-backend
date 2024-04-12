@@ -8,6 +8,41 @@ imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
 
+# -- backend settings
+backend:
+  # -- clickhouse connection settings
+  clickhouse:
+    # -- (string) hostname or ip of the clickhouse cluster (required)
+    host:
+    # -- (int) port to connect over (required)
+    port: 9000
+    # -- username to authenticate with (required)
+    user: default
+    # -- password to authenticate with (optional)
+    pass:
+    # -- database name where otel is exporting traces
+    database: otel
+    # -- traces table name where otel is exporting traces
+    table: otel_traces
+    # -- tls settings for
+    tls:
+      enabled: false
+      insecure: false
+    # -- (int) maximum open connections to have to db
+    max_open_conns:
+    # -- (int) maximum idle connections to have to db
+    max_idle_conns:
+    # -- (int) maximum time of a connection
+    conn_max_lifetime_millis:
+    # -- (int) maximum idle time of a connection
+    conn_max_idle_time_millis:
+  # -- observability for the backend service
+  tracing:
+    # -- enable exporting traces
+    enabled: false
+    # -- otel grpc endpoint to send traces
+    otel_grpc_endpoint: ""
+
 serviceAccount:
   create: true
   automount: true

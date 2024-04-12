@@ -44,9 +44,13 @@ jobs:
         if: steps.list-changed.outputs.changed == 'true'
         uses: helm/kind-action@v1.9.0
 
+      - name: Install clickhouse helm chart
+        if: steps.list-changed.outputs.changed == 'true'
+        run: helm upgrade --install --version 24.3.2 --set shards=1,replicaCount=1,persistence.enabled=false,zookeeper.enabled=false,auth.password="clickhouse" clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse
+
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct install --target-branch ${{ github.event.repository.default_branch }}
+        run: ct install --helm-extra-set-args "backend.clickhouse.host=clickhouse.clickhouse.svc,backend.clickhouse.database=default" --target-branch ${{ github.event.repository.default_branch }}
 
   generate-docs:
     runs-on: ubuntu-latest
