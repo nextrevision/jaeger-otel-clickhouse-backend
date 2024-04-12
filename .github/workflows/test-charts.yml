@@ -50,7 +50,7 @@ jobs:
 
       - name: Run chart-testing (install)
         if: steps.list-changed.outputs.changed == 'true'
-        run: ct install --helm-extra-set-args "--set=backend.clickhouse.host=clickhouse.clickhouse.svc --set=backend.clickhouse.database=default --set=backend.clickhouse.pass=clickhouse" --target-branch ${{ github.event.repository.default_branch }}
+        run: ct install --helm-extra-set-args "--set=backend.clickhouse.host=clickhouse.default.svc --set=backend.clickhouse.database=default --set=backend.clickhouse.pass=clickhouse" --target-branch ${{ github.event.repository.default_branch }}
 
   generate-docs:
     runs-on: ubuntu-latest
