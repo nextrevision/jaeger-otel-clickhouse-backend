@@ -1,0 +1,6 @@
+apiVersion: v2
+name: jaeger-otel-clickhouse-backend
+description: Helm chart for deploying the jaeger-otel-clickhouse-backend and jaeger-query services
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

@@ -1,0 +1,165 @@
+replicaCount: 1
+image:
+  repository: nextrevision/jaeger-otel-clickhouse-backend
+  pullPolicy: IfNotPresent
+  tag: "0.1.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+# -- backend settings
+backend:
+  # -- clickhouse connection settings
+  clickhouse:
+    # -- (string) hostname or ip of the clickhouse cluster (required)
+    host:
+    # -- (int) port to connect over (required)
+    port: 9000
+    # -- username to authenticate with (required)
+    user: default
+    # -- password to authenticate with (optional)
+    pass:
+    # -- database name where otel is exporting traces
+    database: otel
+    # -- traces table name where otel is exporting traces
+    table: otel_traces
+    # -- tls settings for
+    tls:
+      enabled: false
+      insecure: false
+    # -- (int) maximum open connections to have to db
+    max_open_conns:
+    # -- (int) maximum idle connections to have to db
+    max_idle_conns:
+    # -- (int) maximum time of a connection
+    conn_max_lifetime_millis:
+    # -- (int) maximum idle time of a connection
+    conn_max_idle_time_millis:
+  # -- observability for the backend service
+  tracing:
+    # -- enable exporting traces
+    enabled: false
+    # -- otel grpc endpoint to send traces
+    otel_grpc_endpoint: ""
+
+jaeger:
+  # -- enable a jaeger-ui sidecar
+  enabled: false
+  # -- image details for jaeger
+  image:
+    repository: jaegertracing/jaeger-query
+    tag: 1.56.0
+  # -- default values, only override this if you have reason
+  env:
+    - name: "SPAN_STORAGE_TYPE"
+      value: "grpc-plugin"
+  # -- startup args
+  args:
+    - "--grpc-storage.server"
+    - "jaeger-otel-clickhouse-backend:14482"
+  # -- jaeger container resourcing
+  resources: {}
+  # -- jaeger ingress
+  ingress:
+    enabled: false
+    className: ""
+    annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    hosts:
+      - host: chart-example.local
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+    tls: []
+    #  - secretName: chart-example-tls
+    #    hosts:
+    #      - chart-example.local
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+  # fsGroup: 2000
+
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
+
+service:
+  type: ClusterIP
+  port: 14482
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources: {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+livenessProbe:
+  initialDelaySeconds: 5
+  tcpSocket:
+    port: grpc
+readinessProbe:
+  initialDelaySeconds: 5
+  tcpSocket:
+    port: grpc
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+  # targetMemoryUtilizationPercentage: 80
+
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

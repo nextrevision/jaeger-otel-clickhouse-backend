@@ -1,0 +1,86 @@
+name: test-charts
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'charts/**'
+
+jobs:
+  test-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          fetch-depth: 0
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          check-latest: true
+
+      - name: Set up chart-testing
+        uses: helm/chart-testing-action@v2.6.0
+
+      - name: Run chart-testing (list-changed)
+        id: list-changed
+        run: |
+          changed=$(ct list-changed --target-branch ${{ github.event.repository.default_branch }})
+          if [[ -n "$changed" ]]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run chart-testing (lint)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct lint --validate-maintainers=false --target-branch ${{ github.event.repository.default_branch }}
+
+      - name: Create kind cluster
+        if: steps.list-changed.outputs.changed == 'true'
+        uses: helm/kind-action@v1.9.0
+
+      - name: Install clickhouse helm chart
+        if: steps.list-changed.outputs.changed == 'true'
+        run: helm upgrade --install --version 6.0.2 --set shards=1,replicaCount=1,persistence.enabled=false,zookeeper.enabled=false,auth.password="clickhouse" clickhouse oci://registry-1.docker.io/bitnamicharts/clickhouse
+
+      - name: Run chart-testing (install)
+        if: steps.list-changed.outputs.changed == 'true'
+        run: ct install --helm-extra-set-args "--set=backend.clickhouse.host=clickhouse.default.svc --set=backend.clickhouse.database=default --set=backend.clickhouse.pass=clickhouse" --target-branch ${{ github.event.repository.default_branch }}
+
+  generate-docs:
+    runs-on: ubuntu-latest
+    needs: test-chart
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.ref }}
+
+      - name: Run helm-docs
+        uses: losisin/helm-docs-github-action@v1
+        with:
+          git-push: true
+          git-commit-message: "Update helm docs"
+
+  kubeconform:
+    runs-on: ubuntu-latest
+    steps:
+      - name: login to Github Packages
+        run: echo "${{ github.token }}" | docker login https://ghcr.io -u ${GITHUB_ACTOR} --password-stdin
+      - uses: actions/checkout@v2
+      - name: Set up Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: v3.14.0
+      - name: Generate Manifests
+        run: helm template --set=backend.clickhouse.host=clickhouse.default.svc --set=backend.clickhouse.database=default --set=backend.clickhouse.pass=clickhouse charts/jaeger-otel-clickhouse-backend > template.yaml
+      - uses: docker://ghcr.io/yannh/kubeconform:latest
+        with:
+          entrypoint: '/kubeconform'
+          args: "-summary -output json template.yaml"
