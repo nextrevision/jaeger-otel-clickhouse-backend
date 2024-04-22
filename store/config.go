@@ -25,6 +25,7 @@ type Config struct {
 	DBMaxIdleConns          uint   `yaml:"db_max_idle_conns"`
 	DBConnMaxLifetimeMillis uint   `yaml:"db_conn_max_lifetime_millis"`
 	DBConnMaxIdleTimeMillis uint   `yaml:"db_conn_max_idle_time_millis"`
+	PadTraceID              bool   `yaml:"pad_trace_id"`
 	EnableTracing           bool   `yaml:"enable_tracing"`
 }
 
@@ -53,6 +54,7 @@ func (c *Config) initFromViper(v *viper.Viper) {
 	c.DBMaxIdleConns = v.GetUint("db_max_idle_conns")
 	c.DBConnMaxLifetimeMillis = v.GetUint("db_conn_max_lifetime_millis")
 	c.DBConnMaxIdleTimeMillis = v.GetUint("db_conn_max_idle_time_millis")
+	c.PadTraceID = v.GetBool("pad_trace_id")
 	c.EnableTracing = v.GetBool("enable_tracing")
 }
 

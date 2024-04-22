@@ -43,6 +43,11 @@ Can be set by YAML file and the `-config` flag or by environment variable with t
 | `JOCB_DB_CONN_MAX_LIFETIME_MILLIS`  | `db_conn_max_lifetime_millis`  | int    | false    |               | `3000`            |
 | `JOCB_DB_CONN_MAX_IDLE_TIME_MILLIS` | `db_conn_max_idle_time_millis` | int    | false    |               | `1000`            |
 | `JOCB_ENABLE_TRACING`               | `enable_tracing`               | bool   | false    | `false`       | `true`            |
+| `JOCB_PAD_TRACE_ID`                 | `pad_trace_id`                 | bool   | false    | `false`       | `true`            |
+
+### Pad Trace ID
+
+If your trace provider exports using the old 16 character trace ID, you can set this field to pad the trace ID with 16 additional "0"s. If you are unsure, check your Clickhouse database and see how traces are being stored. If there are trace IDs padded with 16 characters, this should be enabled.
 
 ### Tracing
 
