@@ -123,8 +123,16 @@ func (r *ClickhouseReader) SearchTraces(ctx context.Context, serviceName string,
 	}
 
 	for key, value := range options.Attributes {
+		if strings.ToLower(key) == "error" {
+			query = query + " AND StatusCode = 'STATUS_CODE_ERROR'"
+			if strings.ToLower(value) == "true" {
+				continue
+			}
+		}
+
 		// Check for instances of wildcard without being escaped
 		wildcardMatch, _ := regexp.MatchString(`(^|[^\\])%`, value)
+
 		if strings.HasPrefix(value, "~") {
 			value = strings.TrimLeft(value, "~")
 			span.SetAttributes(attribute.String("query-type", "MATCH"))
