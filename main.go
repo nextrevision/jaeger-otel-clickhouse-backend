@@ -175,7 +175,7 @@ func main() {
 	}
 	defer func() { _ = db.Close() }()
 
-	clickhouseStore := clickhousestore.New(cfg.DBTable, db, tracer)
+	clickhouseStore := clickhousestore.New(cfg.DBTable, cfg.PadTraceID, db, tracer)
 
 	// Create new storeBackend
 	storeBackend := store.New(clickhouseStore, tracer)

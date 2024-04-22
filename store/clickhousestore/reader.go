@@ -28,18 +28,20 @@ type ClickhouseStore interface {
 }
 
 type ClickhouseReader struct {
-	db     *sql.DB
-	table  string
-	tracer trace.Tracer
-	logger *slog.Logger
+	table      string
+	padTraceID bool
+	db         *sql.DB
+	tracer     trace.Tracer
+	logger     *slog.Logger
 }
 
-func New(table string, db *sql.DB, tracer trace.Tracer) *ClickhouseReader {
+func New(table string, padTraceID bool, db *sql.DB, tracer trace.Tracer) *ClickhouseReader {
 	return &ClickhouseReader{
-		db:     db,
-		table:  table,
-		tracer: tracer,
-		logger: slog.Default(),
+		table:      table,
+		padTraceID: padTraceID,
+		db:         db,
+		tracer:     tracer,
+		logger:     slog.Default(),
 	}
 }
 
@@ -218,6 +220,11 @@ func (r *ClickhouseReader) getTraces(ctx context.Context, traceIDs []string) ([]
 		return traces, nil
 	}
 
+	// Normalize trace IDs to contain 32 characters with zeros prepended
+	if r.padTraceID {
+		traceIDs = r.padTraceIDs(traceIDs)
+	}
+
 	traceIDSearch := make([]interface{}, len(traceIDs))
 	for i, traceID := range traceIDs {
 		traceIDSearch[i] = traceID
@@ -272,4 +279,17 @@ func (r *ClickhouseReader) getTraces(ctx context.Context, traceIDs []string) ([]
 	}
 
 	return traces, nil
+}
+
+// Normalize trace IDs to contain 32 characters with zeros prepended
+func (r *ClickhouseReader) padTraceIDs(traceIDs []string) []string {
+	paddedTraceIDs := make([]string, 0, len(traceIDs))
+	for _, traceID := range traceIDs {
+		if len(traceID) == 16 {
+			paddedTraceIDs = append(paddedTraceIDs, fmt.Sprintf("%032s", traceID))
+		} else {
+			paddedTraceIDs = append(paddedTraceIDs, traceID)
+		}
+	}
+	return paddedTraceIDs
 }
