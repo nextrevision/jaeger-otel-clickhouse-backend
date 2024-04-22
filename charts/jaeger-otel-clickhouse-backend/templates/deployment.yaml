@@ -105,12 +105,15 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.jaeger.image.repository }}:{{ .Values.jaeger.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-
           ports:
             - name: http-ui
               containerPort: 16686
               protocol: TCP
-          {{- with .Values.jaeger.env}}
+          {{- with .Values.jaeger.args }}
+          args:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          {{- with .Values.jaeger.env }}
           env:
             {{- toYaml . | nindent 12 }}
           {{- end }}
