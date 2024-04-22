@@ -11,5 +11,9 @@ spec:
       targetPort: grpc
       protocol: TCP
       name: grpc
+    - port: 16686
+      targetPort: http-ui
+      protocol: TCP
+      name: http-ui
   selector:
     {{- include "jaeger-otel-clickhouse-backend.selectorLabels" . | nindent 4 }}

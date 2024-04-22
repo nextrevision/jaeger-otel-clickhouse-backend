@@ -99,6 +99,36 @@ spec:
           volumeMounts:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+        {{- if .Values.jaeger.enabled }}
+        - name: jaeger-ui
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.jaeger.image.repository }}:{{ .Values.jaeger.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - name: http-ui
+              containerPort: 16686
+              protocol: TCP
+          {{- with .Values.jaeger.env}}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http-ui
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http-ui
+          resources:
+            {{- toYaml .Values.jaeger.resources | nindent 12 }}
+          {{- with .Values.jaeger.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+        {{- end }}
       {{- with .Values.volumes }}
       volumes:
         {{- toYaml . | nindent 8 }}

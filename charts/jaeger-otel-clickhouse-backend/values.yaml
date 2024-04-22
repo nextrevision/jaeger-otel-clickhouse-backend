@@ -43,6 +43,32 @@ backend:
     # -- otel grpc endpoint to send traces
     otel_grpc_endpoint: ""
 
+jaeger:
+  # -- enable a jaeger-ui sidecar
+  enabled: true
+  # -- image details for jaeger
+  image:
+    repo: jaegertracing/jaeger-query
+    tag: 1.56.0
+  # -- default values, only override this if you have reason
+  env:
+    - name: "SPAN_STORAGE_TYPE"
+      value: "grpc-plugin"
+  # -- startup args
+  args:
+    - "--grpc-storage.server"
+    - "jaeger-otel-clickhouse-backend:14482"
+  # -- jaeger container resourcing
+  resources: {}
+  # -- jaeger ingress
+  ingress:
+    enabled: false
+    className: ""
+    annotations: { }
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+    hosts:
+
 serviceAccount:
   create: true
   automount: true
