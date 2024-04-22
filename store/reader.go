@@ -267,6 +267,9 @@ func (s *Store) convertClickhouseToJaegerTrace(ctx context.Context, chTrace *cli
 			for key, value := range sp.SpanAttributes {
 				tags = append(tags, model.String(key, value))
 			}
+			if sp.StatusCode == "STATUS_CODE_ERROR" {
+				tags = append(tags, model.Bool("error", true))
+			}
 			newSpan.Tags = tags
 		}
 
