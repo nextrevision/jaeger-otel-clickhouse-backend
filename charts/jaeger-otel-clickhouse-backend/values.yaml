@@ -45,7 +45,7 @@ backend:
 
 jaeger:
   # -- enable a jaeger-ui sidecar
-  enabled: true
+  enabled: false
   # -- image details for jaeger
   image:
     repository: jaegertracing/jaeger-query
