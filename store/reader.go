@@ -262,6 +262,28 @@ func (s *Store) convertClickhouseToJaegerTrace(ctx context.Context, chTrace *cli
 			}
 		}
 
+		// Deduplicate spans caused by a Zipkin behavior where a server span extends a client span
+		// by using the same span ID instead of creating a new span ID. Zipkin would resolve this
+		// duplication by combining the two spans, while favoring some details in the server span
+		// but treating it as a special extension. The ultimate result would be a single span in
+		// the Zipkin UI, even though the duplicate spans are still recorded in the datastore.
+		// The following workaround tries to mimic the Zipkin behavior for old instrumentations.
+		for i, recordedSpan := range jaegerTrace.Spans {
+			if recordedSpan.SpanID == spanID && sp.SpanKind == "SPAN_KIND_SERVER" {
+				// If the span of the current loop is a duplicate and it's the server span, take the
+				// parent span references from the client. These references are unavailable in the server
+				// span otherwise. Finally, delete the client span.
+				newSpan.References = recordedSpan.References
+				jaegerTrace.Spans = append(jaegerTrace.Spans[:i], jaegerTrace.Spans[i+1:]...)
+			} else if recordedSpan.SpanID == spanID && sp.SpanKind == "SPAN_KIND_CLIENT" {
+				// If the span of the current loop is a duplicate and a client span, update the already
+				// recorded server span with the parent span references to ensure proper hierarchy.
+				// Finally, ignore the current client span altogether.
+				jaegerTrace.Spans[i].References = newSpan.References
+				continue
+			}
+		}
+
 		if len(sp.SpanAttributes) > 0 {
 			tags := make([]model.KeyValue, 0, len(sp.SpanAttributes))
 			for key, value := range sp.SpanAttributes {
