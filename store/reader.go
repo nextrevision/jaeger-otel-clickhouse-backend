@@ -302,10 +302,8 @@ func (s *Store) convertClickhouseToJaegerTrace(ctx context.Context, chTrace *cli
 				log.Timestamp = sp.EventsTimestamp[idx]
 				log.Fields = make([]model.KeyValue, 0, len(sp.EventsAttributes)+1)
 				log.Fields = append(log.Fields, model.String("event", value))
-				for i := range sp.EventsAttributes {
-					for k, v := range sp.EventsAttributes[i] {
-						log.Fields = append(log.Fields, model.String(k, v))
-					}
+				for k, v := range sp.EventsAttributes[idx] {
+					log.Fields = append(log.Fields, model.String(k, v))
 				}
 				logs = append(logs, log)
 			}
